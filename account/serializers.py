@@ -15,11 +15,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         fields = ['account', 'amount', 'transaction_type']
 
 
-class RegisterSerializer(serializers.ModelSerializer):
-    model = User
-    fields = ['username', 'email', 'password']
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -33,25 +28,3 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class DepositSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = ['account', 'amount', 'transaction_type']
-
-
-class WithdrawSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LinkedAccount
-        fields = ['account_number', 'amount', 'pin']
-
-
-    def withdraw_amount(self, amount, balance, pin):
-        if balance > 0 and amount > 0 and pin == LinkedAccount.pin:
-            balance =- amount
-        else:
-            raise ValueError("Insufficient funds")
-
-class WalletSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Wallet
-        fields = ['wallet_id', 'user_account']

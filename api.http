@@ -1,0 +1,26 @@
+POST http://localhost:8000/api/token/
+Content-Type: application/json
+
+{
+  "username": "geetechlab",
+  "password": "18thnov1990"
+}
+
+###
+POST http://localhost:8000/wallet/deposit/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDI2MTgwLCJpYXQiOjE3Mzk4MjEzODAsImp0aSI6IjNmNTEwZDBhNzUxOTRiY2ZhM2ExNWVhMmIzNzYwYTBlIiwidXNlcl9pZCI6MX0.n90oQ7VFtFCXcwmkX6mcur7vapNAREYBN3E55lvw58I
+
+{
+  "amount": 100
+}
+
+###
+POST http://localhost:8000/wallet/withdraw/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDI2MTgwLCJpYXQiOjE3Mzk4MjEzODAsImp0aSI6IjNmNTEwZDBhNzUxOTRiY2ZhM2ExNWVhMmIzNzYwYTBlIiwidXNlcl9pZCI6MX0.n90oQ7VFtFCXcwmkX6mcur7vapNAREYBN3E55lvw58I
+
+{
+  "amount": 100,
+  "pin": 1
+}
