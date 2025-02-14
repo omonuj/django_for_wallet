@@ -3,10 +3,7 @@ from tkinter.constants import INSERT
 
 import segno
 import requests
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
-from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,30 +21,18 @@ class UserViewSet(ModelViewSet):
 
 
 def deposit_amount(request):
-    #wallet_user = Wallet.objects.get(user=request.user)
-    # if transaction_type == 'income' and amount > 0:
-    #     wallet_user.balance += amount
-    #     wallet_user.save()
-    #
-    #     transaction = Transaction()
-    #     transaction.wallet = wallet_user
-    #     transaction.amount = Transaction.amount
-    #     transaction.transaction_type = Transaction.transaction_type
-    #     transaction.save()
-    # else:
-    #     raise ValueError("Amount must be positive")
-
-    wallet_user = Wallet.objects.get(user=requests)
+    wallet_user = Wallet.objects.get(user=request.user)
     amount = wallet_user.deposit_amount
     wallet_number = wallet_user.wallet_number
     if wallet_number == Wallet.wallet_number and Transaction.amount > 0:
         wallet_user.balance += amount
         wallet_user.save()
 
-    if requests.get(wallet_user):
+    if wallet_user:
         transaction = Transaction()
         transaction.wallet = wallet_user
-        transaction.amount = Transaction.amount
+        transaction.amount = amount
+        transaction.transaction_type = 'income'
         transaction.save()
         transaction.deposit(amount)
     else:
@@ -55,8 +40,9 @@ def deposit_amount(request):
 
 
 def withdraw_amount(request, amount, balance, pin):
-    wallet_user = Wallet.objects.filter(request.user)
-    if amount < balance and pin == LinkedAccount.pin:
+    wallet_user = Wallet.objects.filter(user=request.user)
+    linked_account = LinkedAccount.objects.get(user=request.user)
+    if amount < balance and pin == linked_account.pin:
         balance = - amount
         transaction = Transaction()
         transaction.wallet = wallet_user
@@ -67,8 +53,13 @@ def withdraw_amount(request, amount, balance, pin):
 
 
 def transfer_amount(request, sender_account, recipient_account, amount, pin):
-    if sender_account.balance > 0 and pin == Wallet.wallet_pin and amount > 0:
+    if sender_account.wallet_pin != pin:
+        raise ValueError("Incorrect PIN")
+    if sender_account.balance >= amount:
+        sender_account.balance -= amount
         recipient_account.balance += amount
+        sender_account.save()
+        recipient_account.save()
     else:
         raise ValueError("Insufficient funds")
 
@@ -76,19 +67,23 @@ def transfer_amount(request, sender_account, recipient_account, amount, pin):
 class WalletView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
-        wallet = get_object_or_404(Wallet, user_id=request.user)
-        pin = wallet
-        if pin == Wallet.wallet_pin:
-            return Wallet.balance
+        wallet = get_object_or_404(Wallet, user=request.user)
+        if wallet.pin == Wallet.wallet_pin:
+            return Response({"balance": wallet.balance}, status=status.HTTP_200_OK)
         else:
             raise ValueError("Incorrect pin, enter correct pin")
 
 
-def view_linked_accounts(request):
-    if request.user.is_authenticated:
-        return LinkedAccount.account_number and LinkedAccount.user
-    else:
-        raise ValueError("User cannot be verified")
+
+class ViewLinkedAccounts(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            linked_accounts = LinkedAccount.objects.filter(user=request.user)
+            return Response({"linked_accounts": list(linked_accounts.values())}, status=200)
+        else:
+            raise ValueError("User cannot be verified")
 
 
 def receive_payment_qr_scan(request):

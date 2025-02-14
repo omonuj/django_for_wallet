@@ -14,8 +14,11 @@ python-decouple==3.8
 pytz==2024.2
 PyYAML==6.0.2
 sqlparse==0.5.3
+requests
 tzdata==2025.1
 uritemplate==4.1.1
 segno~=1.6.1
 python-dotenv~=1.0.1
+pillow
 future~=1.0.0
+psycopg2-binary

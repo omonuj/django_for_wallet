@@ -17,13 +17,20 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     model = User
-    fields = ['username', 'password']
+    fields = ['username', 'email', 'password']
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'password']
+        fields = ['username', 'email', 'password']
+
+    def create(self, validated_data):
+        return User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+        )
 
 
 class DepositSerializer(serializers.ModelSerializer):

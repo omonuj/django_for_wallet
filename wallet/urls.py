@@ -21,30 +21,26 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
-from wallet.views import Homepage
-
-
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="Snippets API",
+      title="Wallet API",
       default_version='v1',
-      description="Test description",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@snippets.local"),
+      description="E-Wallet API",
+      terms_of_service="https://api.ewallet.com/policies/terms/",
+      contact=openapi.Contact(email="contact@ewallet.com"),
       license=openapi.License(name="BSD License"),
    ),
    public=True,
    permission_classes=(permissions.AllowAny,),
 )
 
-urlpatterns = [
-    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
-    path('admin/', admin.site.urls),  # Admin panel
-    path('', Homepage.as_view(), name='home'),
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('accounts/', include('account.urls')),
     path('wallet/', include('ewallet.urls')),
 ]
 #user can get all income and expenditure
