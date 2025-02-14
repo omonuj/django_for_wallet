@@ -19,7 +19,7 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-
+@api_view(['POST'])
 def deposit_amount(request):
     wallet_user = Wallet.objects.get(user=request.user)
     amount = wallet_user.deposit_amount
@@ -27,7 +27,7 @@ def deposit_amount(request):
     if wallet_number == Wallet.wallet_number and Transaction.amount > 0:
         wallet_user.balance += amount
         wallet_user.save()
-
+        return Response(error, status=status.HTTP_200_OK)
     if wallet_user:
         transaction = Transaction()
         transaction.wallet = wallet_user
@@ -35,10 +35,12 @@ def deposit_amount(request):
         transaction.transaction_type = 'income'
         transaction.save()
         transaction.deposit(amount)
+        return Response(success, status=status.HTTP_200_OK)
     else:
         return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
 def withdraw_amount(request, amount, balance, pin):
     wallet_user = Wallet.objects.filter(user=request.user)
     linked_account = LinkedAccount.objects.get(user=request.user)
@@ -48,6 +50,7 @@ def withdraw_amount(request, amount, balance, pin):
         transaction.wallet = wallet_user
         transaction.amount = amount
         transaction.transaction_type = 'withdraw'
+        return Response(success, status=status.HTTP_200_OK)
     else:
         raise ValueError("Insufficient funds")
 
