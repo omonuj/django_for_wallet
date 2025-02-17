@@ -1,6 +1,5 @@
 from dbm import error
 from tkinter.constants import INSERT
-
 import segno
 import requests
 from django.shortcuts import get_object_or_404
@@ -15,7 +14,6 @@ from account.models import LinkedAccount
 from account.serializers import UserSerializer
 from django.contrib.auth.models import User
 from ewallet.models import Wallet, Transaction
-
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from ewallet.serializers import WalletSerializer, DepositSerializer, WithdrawSerializer
@@ -31,16 +29,13 @@ class DepositView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        request_body=DepositSerializer,
-    )
+    @swagger_auto_schema(request_body=DepositSerializer)
     def post(self, request):
         try:
             wallet = request.user.wallet
         except Wallet.DoesNotExist:
             return Response({"error": "User does not have a wallet"}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = DepositSerializer(data=request.data)
+        serializer = DepositSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             amount = serializer.validated_data['amount']
             transaction = Transaction.objects.create(
@@ -57,14 +52,9 @@ class DepositView(APIView):
 class WithdrawView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
-    @swagger_auto_schema(
-        request_body=WithdrawSerializer,
-    )
-
+    @swagger_auto_schema(request_body=WithdrawSerializer)
     def post(self, request):
         serializer = WithdrawSerializer(data=request.data, context={"request": request})
-
         if serializer.is_valid():
             wallet = serializer.validated_data["wallet"]
             amount = serializer.validated_data["amount"]
@@ -81,7 +71,8 @@ class WithdrawView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class WalletDetailView(APIView):
+
+class BalanceView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -92,17 +83,6 @@ class WalletDetailView(APIView):
             return Response({"error": "Wallet not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = WalletSerializer(wallet)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class BalanceView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-    def get(self, request):
-        wallet = get_object_or_404(Wallet, user=request.user)
-        if wallet.pin == Wallet.wallet_pin:
-            return Response({"balance": wallet.balance}, status=status.HTTP_200_OK)
-        else:
-            raise ValueError("Incorrect pin, enter correct pin")
 
 
 class ViewLinkedAccounts(APIView):

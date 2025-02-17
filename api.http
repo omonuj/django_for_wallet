@@ -1,26 +1,49 @@
+POST http://localhost:8000/accounts/register/
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@mail.com",
+  "password": "Pass=1234",
+  "pin": "1234"
+}
+
+
+###
 POST http://localhost:8000/api/token/
 Content-Type: application/json
 
 {
-  "username": "geetechlab",
-  "password": "18thnov1990"
+  "username": "testuser",
+  "password": "Pass=1234"
 }
+
 
 ###
 POST http://localhost:8000/wallet/deposit/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDI2MTgwLCJpYXQiOjE3Mzk4MjEzODAsImp0aSI6IjNmNTEwZDBhNzUxOTRiY2ZhM2ExNWVhMmIzNzYwYTBlIiwidXNlcl9pZCI6MX0.n90oQ7VFtFCXcwmkX6mcur7vapNAREYBN3E55lvw58I
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDMzNzY5LCJpYXQiOjE3Mzk4Mjg5NjksImp0aSI6IjE0YjY5ODcwZDM2MDRiZmFiOWE3ZWJlMmExMTJkNGY5IiwidXNlcl9pZCI6MX0.UqgLuwJ7DDnSzX-1hrbVEiAAztDWzsmJgLPe1nndK_c
 
 {
-  "amount": 100
+  "amount": 100,
+  "pin": "1234"
 }
 
 ###
 POST http://localhost:8000/wallet/withdraw/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDI2MTgwLCJpYXQiOjE3Mzk4MjEzODAsImp0aSI6IjNmNTEwZDBhNzUxOTRiY2ZhM2ExNWVhMmIzNzYwYTBlIiwidXNlcl9pZCI6MX0.n90oQ7VFtFCXcwmkX6mcur7vapNAREYBN3E55lvw58I
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDMzNzY5LCJpYXQiOjE3Mzk4Mjg5NjksImp0aSI6IjE0YjY5ODcwZDM2MDRiZmFiOWE3ZWJlMmExMTJkNGY5IiwidXNlcl9pZCI6MX0.UqgLuwJ7DDnSzX-1hrbVEiAAztDWzsmJgLPe1nndK_c
 
 {
-  "amount": 100,
-  "pin": 1
+  "amount": 10,
+  "pin": "1234"
+}
+
+###
+GET http://localhost:8000/wallet/balance
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDMzNzY5LCJpYXQiOjE3Mzk4Mjg5NjksImp0aSI6IjE0YjY5ODcwZDM2MDRiZmFiOWE3ZWJlMmExMTJkNGY5IiwidXNlcl9pZCI6MX0.UqgLuwJ7DDnSzX-1hrbVEiAAztDWzsmJgLPe1nndK_c
+
+{
+  "pin": "1234"
 }

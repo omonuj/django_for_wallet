@@ -5,11 +5,24 @@ from account.models import LinkedAccount
 
 class DepositSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    pin = serializers.CharField(write_only=True, min_length=4, max_length=6)
+
+    def validate(self, data):
+        request = self.context["request"]
+        wallet = request.user.wallet
+        pin = data["pin"]
+
+        if not wallet.check_pin(pin):
+            raise serializers.ValidationError("Invalid PIN.")
+
+        if data["amount"] <= 0:
+            raise serializers.ValidationError("Deposit amount must be positive.")
+        return data
 
 
 class WithdrawSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
-    pin = serializers.CharField(write_only=True)
+    pin = serializers.CharField(write_only=True, min_length=4, max_length=6)
 
     def validate(self, data):
         request = self.context["request"]
@@ -17,9 +30,8 @@ class WithdrawSerializer(serializers.Serializer):
         amount = data["amount"]
         pin = data["pin"]
 
-        linked_account = LinkedAccount.objects.filter(user=wallet.user, pin=pin).first()
-        if not linked_account:
-            raise serializers.ValidationError("Invalid PIN or account mismatch.")
+        if not wallet.check_pin(pin):
+            raise serializers.ValidationError("Invalid PIN.")
 
         if wallet.balance < amount:
             raise serializers.ValidationError("Insufficient funds.")
@@ -30,4 +42,4 @@ class WithdrawSerializer(serializers.Serializer):
 class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
-        fields = ['user', 'wallet_number', 'balance']
+        fields = ['wallet_number', 'balance']
