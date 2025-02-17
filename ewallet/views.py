@@ -5,13 +5,20 @@ import segno
 import requests
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-
+from rest_framework import status
 from account.models import LinkedAccount
 from account.serializers import UserSerializer
-from ewallet.models import Wallet, Transaction, User
+from django.contrib.auth.models import User
+from ewallet.models import Wallet, Transaction
+
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from ewallet.serializers import WalletSerializer, DepositSerializer, WithdrawSerializer
 
 
 # Create your views here.
@@ -19,40 +26,95 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-@api_view(['POST'])
-def deposit_amount(request):
-    wallet_user = Wallet.objects.get(user=request.user)
-    amount = wallet_user.deposit_amount
-    wallet_number = wallet_user.wallet_number
-    if wallet_number == Wallet.wallet_number and Transaction.amount > 0:
-        wallet_user.balance += amount
-        wallet_user.save()
-        return Response(error, status=status.HTTP_200_OK)
-    if wallet_user:
-        transaction = Transaction()
-        transaction.wallet = wallet_user
-        transaction.amount = amount
-        transaction.transaction_type = 'income'
-        transaction.save()
-        transaction.deposit(amount)
-        return Response(success, status=status.HTTP_200_OK)
-    else:
-        return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+class DepositView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=DepositSerializer,
+    )
+    def post(self, request):
+        try:
+            wallet = request.user.wallet
+        except Wallet.DoesNotExist:
+            return Response({"error": "User does not have a wallet"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DepositSerializer(data=request.data)
+        if serializer.is_valid():
+            amount = serializer.validated_data['amount']
+            transaction = Transaction.objects.create(
+                wallet=wallet,
+                amount=amount,
+                transaction_type="deposit"
+            )
+            wallet.balance += amount
+            wallet.save()
+            return Response({"message": "Deposit successful", "new_balance": wallet.balance}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
-def withdraw_amount(request, amount, balance, pin):
-    wallet_user = Wallet.objects.filter(user=request.user)
-    linked_account = LinkedAccount.objects.get(user=request.user)
-    if amount < balance and pin == linked_account.pin:
-        balance = - amount
-        transaction = Transaction()
-        transaction.wallet = wallet_user
-        transaction.amount = amount
-        transaction.transaction_type = 'withdraw'
-        return Response(success, status=status.HTTP_200_OK)
-    else:
-        raise ValueError("Insufficient funds")
+class WithdrawView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=WithdrawSerializer,
+    )
+
+    def post(self, request):
+        serializer = WithdrawSerializer(data=request.data, context={"request": request})
+
+        if serializer.is_valid():
+            wallet = serializer.validated_data["wallet"]
+            amount = serializer.validated_data["amount"]
+            Transaction.objects.create(
+                wallet=wallet,
+                amount=amount,
+                transaction_type="withdraw"
+            )
+            wallet.balance -= amount
+            wallet.save()
+            return Response(
+                {"message": "Withdrawal successful", "new_balance": wallet.balance},
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class WalletDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            wallet = Wallet.objects.get(user=request.user)
+        except Wallet.DoesNotExist:
+            return Response({"error": "Wallet not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = WalletSerializer(wallet)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class BalanceView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        wallet = get_object_or_404(Wallet, user=request.user)
+        if wallet.pin == Wallet.wallet_pin:
+            return Response({"balance": wallet.balance}, status=status.HTTP_200_OK)
+        else:
+            raise ValueError("Incorrect pin, enter correct pin")
+
+
+class ViewLinkedAccounts(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            linked_accounts = LinkedAccount.objects.filter(user=request.user)
+            return Response({"linked_accounts": list(linked_accounts.values())}, status=200)
+        else:
+            raise ValueError("User cannot be verified")
 
 
 def transfer_amount(request, sender_account, recipient_account, amount, pin):
@@ -65,28 +127,6 @@ def transfer_amount(request, sender_account, recipient_account, amount, pin):
         recipient_account.save()
     else:
         raise ValueError("Insufficient funds")
-
-
-class WalletView(APIView):
-    permission_classes = [IsAuthenticated]
-    def get(self, request):
-        wallet = get_object_or_404(Wallet, user=request.user)
-        if wallet.pin == Wallet.wallet_pin:
-            return Response({"balance": wallet.balance}, status=status.HTTP_200_OK)
-        else:
-            raise ValueError("Incorrect pin, enter correct pin")
-
-
-
-class ViewLinkedAccounts(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        if request.user.is_authenticated:
-            linked_accounts = LinkedAccount.objects.filter(user=request.user)
-            return Response({"linked_accounts": list(linked_accounts.values())}, status=200)
-        else:
-            raise ValueError("User cannot be verified")
 
 
 def receive_payment_qr_scan(request):
