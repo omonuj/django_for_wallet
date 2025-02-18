@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
 from account.models import LinkedAccount
+from django.contrib.auth.hashers import check_password
 from account.serializers import UserSerializer
 from django.contrib.auth.models import User
 from ewallet.models import Wallet, Transaction
@@ -97,16 +98,55 @@ class ViewLinkedAccounts(APIView):
             raise ValueError("User cannot be verified")
 
 
-def transfer_amount(request, sender_account, recipient_account, amount, pin):
-    if sender_account.wallet_pin != pin:
-        raise ValueError("Incorrect PIN")
-    if sender_account.balance >= amount:
-        sender_account.balance -= amount
-        recipient_account.balance += amount
-        sender_account.save()
-        recipient_account.save()
-    else:
-        raise ValueError("Insufficient funds")
+class TransferAmountView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        sender = request.user.wallet.wallet_number
+        recipient = request.data.get("recipient_wallet")
+        amount = request.data.get("amount")
+        pin = request.data.get("pin")
+
+        if not recipient or not amount or not pin:
+            return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+        if sender == recipient:
+            return Response({"error": "You cant send money to your self"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            sender_wallet = get_object_or_404(Wallet, wallet_number=sender)
+            recipient_wallet = get_object_or_404(Wallet, wallet_number=recipient)
+
+            print("------------Sender--------------")
+            print(sender_wallet)
+            print("------------Recipient--------------")
+            print(recipient_wallet)
+
+            if sender_wallet.check_pin(pin):
+                return Response({"error": "Incorrect PIN"}, status=status.HTTP_403_FORBIDDEN)
+
+            # amount = float(amount)
+            if sender_wallet.balance < amount:
+                return Response({"error": "Insufficient funds"}, status=status.HTTP_400_BAD_REQUEST)
+
+            sender_wallet.balance -= amount
+            recipient_wallet.balance += amount
+            sender_wallet.save()
+            recipient_wallet.save()
+
+            Transaction.objects.create(
+                wallet=sender_wallet,
+                amount=amount,
+                transaction_type='expense'
+            )
+
+            Transaction.objects.create(
+                wallet=recipient_wallet,
+                amount=amount,
+                transaction_type='income'
+            )
+            return Response({"message": "Transfer successful"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def receive_payment_qr_scan(request):
