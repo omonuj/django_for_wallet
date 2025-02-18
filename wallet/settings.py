@@ -110,6 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 ALLOWED_HOSTS = [
+    '13.61.6.188',
     '127.0.0.1',
     'https://e-walletapp-front-end.vercel.app',
     'localhost'
