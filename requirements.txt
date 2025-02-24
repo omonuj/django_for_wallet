@@ -22,3 +22,4 @@ python-dotenv~=1.0.1
 pillow
 future~=1.0.0
 psycopg2-binary
+cryptography

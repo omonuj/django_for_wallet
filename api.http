@@ -1,4 +1,7 @@
-POST http://localhost:8000/accounts/register/
+@baseUrl = http://localhost:8000
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwMzE4MDY2LCJpYXQiOjE3NDAxNDUyNjYsImp0aSI6ImU5ZDI5YzgwZmEzNjRkZDRhNjVhZGVkNzg3YjI4NzA0IiwidXNlcl9pZCI6Mn0.x1aMo0uQcpVq67msk4S9NAZIysOgF-pIX-_6h1baZew
+
+POST {{baseUrl}}/accounts/register/
 Content-Type: application/json
 
 {
@@ -10,7 +13,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:8000/api/token/
+POST {{baseUrl}}/api/token/
 Content-Type: application/json
 
 {
@@ -20,9 +23,9 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:8000/wallet/deposit/
+POST {{baseUrl}}/wallet/deposit/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDYwNDI1LCJpYXQiOjE3Mzk4NTU2MjUsImp0aSI6ImIyOTMwZWI5YjQ5YTQ3ZjhiYjhlN2IzMGQ3N2IyNzU0IiwidXNlcl9pZCI6Mn0.AjGWlULeNLwMmoqCu36_V-V8OXtTikh9dGa_32NYw-g
+Authorization: {{token}}
 
 {
   "amount": 100,
@@ -30,9 +33,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 ###
-POST http://localhost:8000/wallet/withdraw/
+POST {{baseUrl}}/wallet/withdraw/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDYwNDI1LCJpYXQiOjE3Mzk4NTU2MjUsImp0aSI6ImIyOTMwZWI5YjQ5YTQ3ZjhiYjhlN2IzMGQ3N2IyNzU0IiwidXNlcl9pZCI6Mn0.AjGWlULeNLwMmoqCu36_V-V8OXtTikh9dGa_32NYw-g
+Authorization: {{token}}
 
 {
   "amount": 10,
@@ -40,21 +43,39 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 ###
-GET http://localhost:8000/wallet/balance
+GET {{baseUrl}}/wallet/balance
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDYwNDI1LCJpYXQiOjE3Mzk4NTU2MjUsImp0aSI6ImIyOTMwZWI5YjQ5YTQ3ZjhiYjhlN2IzMGQ3N2IyNzU0IiwidXNlcl9pZCI6Mn0.AjGWlULeNLwMmoqCu36_V-V8OXtTikh9dGa_32NYw-g
+Authorization: {{token}}
 
 {
   "pin": "1234"
 }
 
 ###
-POST http://localhost:8000/wallet/transfer_money/
+POST {{baseUrl}}/wallet/transfer_money/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQwNDYwNDI1LCJpYXQiOjE3Mzk4NTU2MjUsImp0aSI6ImIyOTMwZWI5YjQ5YTQ3ZjhiYjhlN2IzMGQ3N2IyNzU0IiwidXNlcl9pZCI6Mn0.AjGWlULeNLwMmoqCu36_V-V8OXtTikh9dGa_32NYw-g
+Authorization: {{token}}
 
 {
   "recipient_wallet": "3024300255",
   "amount": 10,
   "pin": "1234"
+}
+
+###
+POST {{baseUrl}}/wallet/receive_payment_qr_scan/
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+    "amount": 10.00
+}
+
+###
+POST {{baseUrl}}/wallet/send_payment_qr_scan/
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+    "qr_data": "gAAAAABnuUEYDepe0w0LxUVTVir0UQnypLh_na6AZlUntFUZlvykxCS_Xhuotc39MLoqVpNc6pvaXnflWe3d64ChFXbJYaBH6A=="
 }

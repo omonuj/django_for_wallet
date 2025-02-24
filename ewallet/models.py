@@ -1,10 +1,17 @@
-from random import randint
+import os
+import uuid
 import segno
+from random import randint
 from django.db.models.signals import pre_save, post_save
 from django.contrib.auth.models import User
 from django.db import models
 from django.dispatch import receiver
+from django.conf import settings
 from django.contrib.auth.hashers import check_password
+
+
+def upload_dir(instance, filename):
+    return f"user_qr_codes/{instance.wallet.user.username}/{filename}"
 
 
 class Wallet(models.Model):
@@ -52,16 +59,9 @@ class Transaction(models.Model):
 
 class TransactionQRScan(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="qr_transactions")
-    qr_code = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
+    qr_code = models.ImageField(upload_to=upload_dir, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     recipient_account_number = models.CharField(max_length=20)
-
-    def save(self, *args, **kwargs):
-        qr = segno.make_qr(f"{self.recipient_account_number}|{self.amount}")
-        qr_path = f"qr_codes/{uuid.uuid4().hex}.png"
-        qr.save(qr_path, scale=8)
-        self.qr_code = qr_path
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"QR Payment {self.amount} to {self.recipient_account_number}"

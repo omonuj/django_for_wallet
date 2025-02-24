@@ -56,24 +56,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wallet.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# Please comment this when testing only for production...
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'wallet_db',
-#         'USER': 'wallet_user',
-#         'PASSWORD': 'wallet_password',
-#         'HOST': 'db',
-#         'PORT': '5432',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+# Please comment this when testing only for production...
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'wallet_db',
+        'USER': 'wallet_user',
+        'PASSWORD': 'wallet_password',
+        'HOST': 'db',
+        'PORT': '5432',
+    }
+}
 
 
 REST_FRAMEWORK = {
@@ -137,8 +137,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -151,3 +151,5 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+QR_ENCRYPTION_KEY = "YvMnZHweeI1hmOD6S9lik9Vz17pp7dFSJTYMnbHcbCY="

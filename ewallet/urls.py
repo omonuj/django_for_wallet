@@ -10,7 +10,8 @@ urlpatterns = [
     path("withdraw/", views.WithdrawView.as_view(), name='withdraw'),
     path("balance/", views.BalanceView.as_view(), name='balance'),
     path("transfer_money/", views.TransferAmountView.as_view(), name='transfer_money'),
-    path("scan_qrcode/", views.receive_payment_qr_scan, name='scan_qrcode'),
+    path("receive_payment_qr_scan/", views.ReceivePaymentQRScan.as_view(), name='receive_payment_qr_scan'),
+    path("send_payment_qr_scan/", views.SendPaymentQRScan.as_view(), name='send_payment_qr_scan'),
     path("transactions/", views.get_spending_log, name='transactions'),
 ]
 router = routers.DefaultRouter()

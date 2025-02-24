@@ -1,1 +1,0 @@
-Generated QR codes goes to this folder.
